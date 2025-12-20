@@ -1,0 +1,15 @@
+# Derlenmiş dosyalar (herkes kendi derler)
+out/
+
+# Veritabanı dosyası (herkes kendi oluşturur)
+data/
+
+# IDE dosyaları
+.idea/
+*.iml
+.vscode/
+*.class
+
+# OS dosyaları
+.DS_Store
+Thumbs.db
