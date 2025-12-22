@@ -11,9 +11,9 @@ echo Copying resources...
 mkdir "out\view"
 copy /Y "src\view\university_bg.jpg" "out\view\university_bg.jpg" >nul
 
-REM Compile
+REM Compile (including util package)
 echo Compiling...
-javac --module-path lib\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml -cp lib\sqlite-jdbc-3.51.1.0.jar -d out -sourcepath src src\Main.java
+javac --module-path lib\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml -cp lib\sqlite-jdbc-3.51.1.0.jar -encoding UTF-8 -d out -sourcepath src src\util\*.java src\Main.java
 
 if errorlevel 1 (
     echo.

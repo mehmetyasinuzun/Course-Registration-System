@@ -4,6 +4,9 @@ out/
 # Veritabanı dosyası (herkes kendi oluşturur)
 data/
 
+# Dokümantasyon (proje tesliminde ayrı gönderilecek)
+docs/
+
 # IDE dosyaları
 .idea/
 *.iml

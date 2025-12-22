@@ -15,6 +15,8 @@ import javafx.collections.FXCollections;
 import controller.StudentController;
 import controller.AuthController;
 import model.*;
+import util.NavigationManager;
+import util.SessionManager;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -131,12 +133,42 @@ public class StudentView {
             notificationsBtn.setText("🔔 Notifications (" + unreadCount + ")");
         }
 
-        dashboardBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(dashboardBtn); showDashboard(); });
-        allCoursesBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(allCoursesBtn); showAllCourses(); });
-        myCoursesBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(myCoursesBtn); showMyCourses(); });
-        transcriptBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(transcriptBtn); showTranscript(); });
-        registrationsBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(registrationsBtn); showRegistrations(); });
-        notificationsBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(notificationsBtn); showNotifications(); });
+        dashboardBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(dashboardBtn); 
+            NavigationManager.navigateTo("Dashboard");  // Stack'e ekle
+            showDashboard(); 
+        });
+        allCoursesBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(allCoursesBtn); 
+            NavigationManager.navigateTo("AllCourses");  // Stack'e ekle
+            showAllCourses(); 
+        });
+        myCoursesBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(myCoursesBtn); 
+            NavigationManager.navigateTo("MyCourses");  // Stack'e ekle
+            showMyCourses(); 
+        });
+        transcriptBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(transcriptBtn); 
+            NavigationManager.navigateTo("Transcript");  // Stack'e ekle
+            showTranscript(); 
+        });
+        registrationsBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(registrationsBtn); 
+            NavigationManager.navigateTo("Registrations");  // Stack'e ekle
+            showRegistrations(); 
+        });
+        notificationsBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(notificationsBtn); 
+            NavigationManager.navigateTo("Notifications");  // Stack'e ekle
+            showNotifications(); 
+        });
         logoutBtn.setOnAction(e -> logout());
 
         logoutBtn.setStyle(

@@ -6,6 +6,10 @@ import model.Registration;
 import model.Course;
 import model.TranscriptEntry;
 import java.util.List;
+import java.util.Queue;
+import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegistrationService {
 
@@ -15,16 +19,137 @@ public class RegistrationService {
     private CourseRepository courseRepo;
     private CourseService courseService;
     private NotificationService notifService;
+    
+    // ===== QUEUE: Bekleyen kayıtlar için FIFO kuyruğu =====
+    private Queue<Registration> pendingQueue = new LinkedList<>();
+    
+    // ===== HASHMAP: Öğrenci kredileri cache =====
+    private Map<Integer, Integer> studentCreditsCache = new HashMap<>();
 
     public RegistrationService() {
         this.regRepo = new RegistrationRepository();
         this.courseRepo = new CourseRepository();
         this.courseService = new CourseService();
         this.notifService = new NotificationService();
+        initializePendingQueue();  // Kuyruğu başlat
     }
+    
+    // ===== QUEUE YÖNETİMİ =====
+    
+    /**
+     * FIFO kuyruk yapısını veritabanından başlat
+     * Queue kullanım mantığı: İlk gelen ilk işlenir (First In First Out)
+     */
+    private void initializePendingQueue() {
+        List<Registration> pending = regRepo.findPending();
+        pendingQueue.clear();
+        pendingQueue.addAll(pending);
+    }
+    
+    /**
+     * Kuyruğu yenile
+     */
+    public void refreshPendingQueue() {
+        initializePendingQueue();
+    }
+    
+    /**
+     * Kuyruğa yeni kayıt ekle (FIFO - sona ekle)
+     * @param registration Eklenecek kayıt
+     */
+    public void addToPendingQueue(Registration registration) {
+        pendingQueue.offer(registration);
+    }
+    
+    /**
+     * Kuyruktan bir sonraki kaydı al (FIFO - baştan al)
+     * @return Sıradaki kayıt veya null
+     */
+    public Registration getNextPending() {
+        return pendingQueue.poll();
+    }
+    
+    /**
+     * Sıradaki kaydı göster (çıkarmadan)
+     * @return Sıradaki kayıt veya null
+     */
+    public Registration peekNextPending() {
+        return pendingQueue.peek();
+    }
+    
+    /**
+     * Kuyruk boyutu
+     * @return Bekleyen kayıt sayısı
+     */
+    public int getQueueSize() {
+        return pendingQueue.size();
+    }
+    
+    /**
+     * Kuyruk boş mu?
+     * @return true eğer kuyruk boşsa
+     */
+    public boolean isQueueEmpty() {
+        return pendingQueue.isEmpty();
+    }
+    
+    /**
+     * Kuyruktaki tüm kayıtları listele (Queue'dan çıkarmadan)
+     * @return Kuyruk listesi
+     */
+    public List<Registration> viewPendingQueue() {
+        return new LinkedList<>(pendingQueue);
+    }
+    
+    /**
+     * Belirli bir kaydı kuyruktan kaldır
+     * @param registrationId Kaldırılacak kayıt ID
+     * @return true eğer kaldırıldıysa
+     */
+    public boolean removeFromQueue(int registrationId) {
+        return pendingQueue.removeIf(r -> r.getId() == registrationId);
+    }
+    
+    // ===== HASHMAP: KREDİ CACHE YÖNETİMİ =====
+    
+    /**
+     * Öğrenci kredisini cache'ten al - O(1)
+     */
+    public int getCurrentCreditsFromCache(int studentId) {
+        if (studentCreditsCache.containsKey(studentId)) {
+            return studentCreditsCache.get(studentId);
+        }
+        // Cache miss - hesapla ve cache'le
+        int credits = calculateCurrentCredits(studentId);
+        studentCreditsCache.put(studentId, credits);
+        return credits;
+    }
+    
+    /**
+     * Öğrenci kredi cache'ini güncelle
+     */
+    public void updateCreditsCache(int studentId, int newCredits) {
+        studentCreditsCache.put(studentId, newCredits);
+    }
+    
+    /**
+     * Öğrenci kredi cache'ini temizle
+     */
+    public void invalidateCreditsCache(int studentId) {
+        studentCreditsCache.remove(studentId);
+    }
+    
+    /**
+     * Tüm kredi cache'ini temizle
+     */
+    public void clearCreditsCache() {
+        studentCreditsCache.clear();
+    }
+    
+    // ===== MEVCUT METODLAR (Güncellendi) =====
 
     // Calculate student's current credit total (PENDING + APPROVED)
-    public int getCurrentCredits(int studentId) {
+    private int calculateCurrentCredits(int studentId) {
         int totalCredits = 0;
         List<Registration> registrations = regRepo.findByStudentId(studentId);
 
@@ -37,6 +162,11 @@ public class RegistrationService {
             }
         }
         return totalCredits;
+    }
+    
+    // Get current credits - uses HashMap cache
+    public int getCurrentCredits(int studentId) {
+        return getCurrentCreditsFromCache(studentId);
     }
 
     // Remaining credits
@@ -126,6 +256,16 @@ public class RegistrationService {
         int regId = regRepo.insert(reg);
 
         if (regId > 0) {
+            // Registration nesnesini güncelle
+            reg.setId(regId);
+            
+            // QUEUE'ya ekle (FIFO)
+            addToPendingQueue(reg);
+            
+            // Kredi cache'ini güncelle
+            int newCredits = getCurrentCreditsFromCache(studentId) + course.getCredits();
+            updateCreditsCache(studentId, newCredits);
+            
             // Send notification to instructor
             notifService.sendNewRegistrationNotification(course.getInstructorId(), studentId, courseId);
             return "SUCCESS: Your registration request has been received. Awaiting approval.";
@@ -139,6 +279,9 @@ public class RegistrationService {
         boolean success = regRepo.approve(registrationId);
 
         if (success) {
+            // Queue'dan kaldır
+            removeFromQueue(registrationId);
+            
             // Send notification to student
             notifService.sendApprovalNotification(studentId, courseId, true);
         }
@@ -151,6 +294,16 @@ public class RegistrationService {
         boolean success = regRepo.reject(registrationId);
 
         if (success) {
+            // Queue'dan kaldır
+            removeFromQueue(registrationId);
+            
+            // Kredi cache'ini güncelle (krediyi geri ver)
+            Course course = courseRepo.findById(courseId);
+            if (course != null) {
+                int newCredits = Math.max(0, getCurrentCreditsFromCache(studentId) - course.getCredits());
+                updateCreditsCache(studentId, newCredits);
+            }
+            
             // Send notification to student
             notifService.sendApprovalNotification(studentId, courseId, false);
         }
@@ -160,7 +313,22 @@ public class RegistrationService {
 
     // Cancel registration (student withdrawal)
     public boolean cancelRegistration(int registrationId) {
-        return regRepo.delete(registrationId);
+        Registration reg = regRepo.findById(registrationId);
+        boolean success = regRepo.delete(registrationId);
+        
+        if (success && reg != null) {
+            // Queue'dan kaldır
+            removeFromQueue(registrationId);
+            
+            // Kredi cache'ini güncelle
+            Course course = courseRepo.findById(reg.getCourseId());
+            if (course != null) {
+                int newCredits = Math.max(0, getCurrentCreditsFromCache(reg.getStudentId()) - course.getCredits());
+                updateCreditsCache(reg.getStudentId(), newCredits);
+            }
+        }
+        
+        return success;
     }
 
     // Get pending registrations (entire system)

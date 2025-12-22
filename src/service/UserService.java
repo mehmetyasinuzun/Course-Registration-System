@@ -4,7 +4,10 @@ import repository.UserRepository;
 import repository.CourseCatalogRepository;
 import repository.RegistrationRepository;
 import model.*;
+import util.SessionManager;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UserService {
     
@@ -12,16 +15,99 @@ public class UserService {
     private CourseCatalogRepository catalogRepo;
     private RegistrationRepository regRepo;
     
+    // ===== HASHMAP: Kullanıcı cache =====
+    private static Map<Integer, User> userIdCache = new HashMap<>();
+    private static Map<String, User> usernameCache = new HashMap<>();
+    
     public UserService() {
         this.userRepo = new UserRepository();
         this.catalogRepo = new CourseCatalogRepository();
         this.regRepo = new RegistrationRepository();
     }
     
+    // ===== HASHMAP CACHE YÖNETİMİ =====
+    
+    /**
+     * Kullanıcıyı cache'e ekle
+     */
+    private void cacheUser(User user) {
+        if (user != null) {
+            userIdCache.put(user.getId(), user);
+            usernameCache.put(user.getUsername(), user);
+            SessionManager.cacheUser(user);
+        }
+    }
+    
+    /**
+     * Cache'ten kullanıcı al (ID ile) - O(1)
+     */
+    public User getUserByIdFast(int id) {
+        User user = userIdCache.get(id);
+        if (user != null) {
+            return user;
+        }
+        
+        user = SessionManager.getCachedUser(id);
+        if (user != null) {
+            userIdCache.put(id, user);
+            usernameCache.put(user.getUsername(), user);
+            return user;
+        }
+        
+        user = userRepo.findById(id);
+        if (user != null) {
+            cacheUser(user);
+        }
+        return user;
+    }
+    
+    /**
+     * Cache'ten kullanıcı al (username ile) - O(1)
+     */
+    public User getUserByUsernameFast(String username) {
+        User user = usernameCache.get(username);
+        if (user != null) {
+            return user;
+        }
+        
+        user = userRepo.findByUsername(username);
+        if (user != null) {
+            cacheUser(user);
+        }
+        return user;
+    }
+    
+    /**
+     * Cache'i temizle
+     */
+    public void clearCache() {
+        userIdCache.clear();
+        usernameCache.clear();
+    }
+    
+    /**
+     * Kullanıcıyı cache'ten kaldır
+     */
+    public void invalidateUserCache(int userId) {
+        User user = userIdCache.remove(userId);
+        if (user != null) {
+            usernameCache.remove(user.getUsername());
+        }
+    }
+    
+    /**
+     * Cache boyutu
+     */
+    public int getCacheSize() {
+        return userIdCache.size();
+    }
+    
+    // ===== MEVCUT METODLAR (Güncellendi) =====
+    
     // Öğrenci ekle (sınıf ve dönem ile)
     public int addStudent(String username, String password, String fullName, String email, String studentNumber, int year, int semester) {
-        // Username kontrolü
-        if (userRepo.findByUsername(username) != null) {
+        // Username kontrolü - HashMap ile O(1)
+        if (usernameCache.containsKey(username) || userRepo.findByUsername(username) != null) {
             System.out.println("Bu kullanıcı adı zaten kullanılıyor!");
             return -1;
         }
@@ -31,6 +117,8 @@ public class UserService {
         
         // Öğrenci başarıyla eklenirse, bulunduğu döneme kadar tüm dersleri completed olarak ekle
         if (studentId > 0) {
+            student.setId(studentId);
+            cacheUser(student);  // Cache'e ekle
             addCompletedCoursesForStudent(studentId, year, semester);
         }
         
@@ -63,34 +151,49 @@ public class UserService {
     
     // Hoca ekle
     public int addInstructor(String username, String password, String fullName, String email) {
-        // Username kontrolü
-        if (userRepo.findByUsername(username) != null) {
+        // Username kontrolü - HashMap ile O(1)
+        if (usernameCache.containsKey(username) || userRepo.findByUsername(username) != null) {
             System.out.println("Bu kullanıcı adı zaten kullanılıyor!");
             return -1;
         }
         
         Instructor instructor = new Instructor(username, password, fullName, email);
-        return userRepo.insert(instructor);
+        int instructorId = userRepo.insert(instructor);
+        
+        if (instructorId > 0) {
+            instructor.setId(instructorId);
+            cacheUser(instructor);  // Cache'e ekle
+        }
+        
+        return instructorId;
     }
     
     // Kullanıcı güncelle
     public boolean updateUser(User user) {
-        return userRepo.update(user);
+        boolean success = userRepo.update(user);
+        if (success) {
+            cacheUser(user);  // Cache'i güncelle
+        }
+        return success;
     }
     
     // Kullanıcı sil
     public boolean deleteUser(int userId) {
-        return userRepo.delete(userId);
+        boolean success = userRepo.delete(userId);
+        if (success) {
+            invalidateUserCache(userId);  // Cache'ten sil
+        }
+        return success;
     }
     
-    // ID ile kullanıcı getir
+    // ID ile kullanıcı getir - HashMap O(1)
     public User getUserById(int id) {
-        return userRepo.findById(id);
+        return getUserByIdFast(id);
     }
     
-    // Username ile kullanıcı getir
+    // Username ile kullanıcı getir - HashMap O(1)
     public User getUserByUsername(String username) {
-        return userRepo.findByUsername(username);
+        return getUserByUsernameFast(username);
     }
     
     // Tüm kullanıcılar

@@ -15,6 +15,8 @@ import javafx.collections.ObservableList;
 import controller.InstructorController;
 import controller.AuthController;
 import model.*;
+import util.NavigationManager;
+import util.SessionManager;
 import java.util.List;
 
 public class InstructorView {
@@ -87,11 +89,36 @@ public class InstructorView {
             notificationsBtn.setText("🔔 Notifications (" + unreadCount + ")");
         }
 
-        dashboardBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(dashboardBtn); showDashboard(); });
-        coursesBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(coursesBtn); showCourses(); });
-        myRequestsBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(myRequestsBtn); showMyRequests(); });
-        registrationsBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(registrationsBtn); showRegistrations(); });
-        notificationsBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(notificationsBtn); showNotifications(); });
+        dashboardBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(dashboardBtn); 
+            NavigationManager.navigateTo("Dashboard");  // Stack'e ekle
+            showDashboard(); 
+        });
+        coursesBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(coursesBtn); 
+            NavigationManager.navigateTo("Courses");  // Stack'e ekle
+            showCourses(); 
+        });
+        myRequestsBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(myRequestsBtn); 
+            NavigationManager.navigateTo("MyRequests");  // Stack'e ekle
+            showMyRequests(); 
+        });
+        registrationsBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(registrationsBtn); 
+            NavigationManager.navigateTo("Registrations");  // Stack'e ekle
+            showRegistrations(); 
+        });
+        notificationsBtn.setOnAction(e -> { 
+            resetMenuButtons(menuBox); 
+            setActiveButton(notificationsBtn); 
+            NavigationManager.navigateTo("Notifications");  // Stack'e ekle
+            showNotifications(); 
+        });
         logoutBtn.setOnAction(e -> logout());
 
         logoutBtn.setStyle(

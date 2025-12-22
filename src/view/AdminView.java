@@ -17,6 +17,8 @@ import javafx.collections.ObservableList;
 import controller.AdminController;
 import controller.AuthController;
 import model.*;
+import util.NavigationManager;
+import util.SessionManager;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -106,46 +108,55 @@ public class AdminView {
         dashboardBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(dashboardBtn);
+            NavigationManager.navigateTo("Dashboard");  // Stack'e ekle
             showDashboard();
         });
         studentsBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(studentsBtn);
+            NavigationManager.navigateTo("Students");  // Stack'e ekle
             showStudents();
         });
         instructorsBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(instructorsBtn);
+            NavigationManager.navigateTo("Instructors");  // Stack'e ekle
             showInstructors();
         });
         transcriptBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(transcriptBtn);
+            NavigationManager.navigateTo("Transcript");  // Stack'e ekle
             showTranscript();
         });
         creditTransferBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(creditTransferBtn);
+            NavigationManager.navigateTo("CreditTransfer");  // Stack'e ekle
             showCreditTransfer();
         });
         catalogBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(catalogBtn);
+            NavigationManager.navigateTo("CourseCatalog");  // Stack'e ekle
             showCourseCatalog();
         });
         coursesBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(coursesBtn);
+            NavigationManager.navigateTo("Courses");  // Stack'e ekle
             showCourses();
         });
         courseRequestsBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(courseRequestsBtn);
+            NavigationManager.navigateTo("CourseRequests");  // Stack'e ekle
             showCourseRequests();
         });
         registrationsBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(registrationsBtn);
+            NavigationManager.navigateTo("Registrations");  // Stack'e ekle
             showRegistrations();
         });
         logoutBtn.setOnAction(e -> logout());
