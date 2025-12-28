@@ -15,8 +15,6 @@ import javafx.collections.FXCollections;
 import controller.StudentController;
 import controller.AuthController;
 import model.*;
-import util.NavigationManager;
-import util.SessionManager;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -62,8 +60,8 @@ public class StudentView {
         header.setPadding(new Insets(30, 20, 30, 20));
         header.setStyle("-fx-background-color: #0e6655;");
 
-        Label logoLabel = new Label("👨‍🎓");
-        logoLabel.setFont(Font.font(40));
+        Label logoLabel = new Label("\uD83C\uDF93");
+        logoLabel.setFont(Font.font("Segoe UI Emoji", 40));
 
         Label titleLabel = new Label("Student Panel");
         titleLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
@@ -124,7 +122,7 @@ public class StudentView {
         // Show failed course count on All Courses button - use TOTAL failed course count
         int failedCourseCount = studentController.getTotalFailedCourseCount(currentUser.getId());
         if (failedCourseCount > 0) {
-            allCoursesBtn.setText("📚 All Courses ⚠️");
+            allCoursesBtn.setText("📚 All Courses \u26A0");
             allCoursesBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff6b6b; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 12 20; -fx-cursor: hand;");
         }
 
@@ -133,42 +131,12 @@ public class StudentView {
             notificationsBtn.setText("🔔 Notifications (" + unreadCount + ")");
         }
 
-        dashboardBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(dashboardBtn); 
-            NavigationManager.navigateTo("Dashboard");  // Stack'e ekle
-            showDashboard(); 
-        });
-        allCoursesBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(allCoursesBtn); 
-            NavigationManager.navigateTo("AllCourses");  // Stack'e ekle
-            showAllCourses(); 
-        });
-        myCoursesBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(myCoursesBtn); 
-            NavigationManager.navigateTo("MyCourses");  // Stack'e ekle
-            showMyCourses(); 
-        });
-        transcriptBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(transcriptBtn); 
-            NavigationManager.navigateTo("Transcript");  // Stack'e ekle
-            showTranscript(); 
-        });
-        registrationsBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(registrationsBtn); 
-            NavigationManager.navigateTo("Registrations");  // Stack'e ekle
-            showRegistrations(); 
-        });
-        notificationsBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(notificationsBtn); 
-            NavigationManager.navigateTo("Notifications");  // Stack'e ekle
-            showNotifications(); 
-        });
+        dashboardBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(dashboardBtn); showDashboard(); });
+        allCoursesBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(allCoursesBtn); showAllCourses(); });
+        myCoursesBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(myCoursesBtn); showMyCourses(); });
+        transcriptBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(transcriptBtn); showTranscript(); });
+        registrationsBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(registrationsBtn); showRegistrations(); });
+        notificationsBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(notificationsBtn); showNotifications(); });
         logoutBtn.setOnAction(e -> logout());
 
         logoutBtn.setStyle(
@@ -354,8 +322,8 @@ public class StudentView {
             alertBanner.setAlignment(Pos.CENTER_LEFT);
             alertBanner.setStyle("-fx-background-color: linear-gradient(to right, #dc3545, #c82333); -fx-padding: 15; -fx-background-radius: 10;");
 
-            Label alertIcon = new Label("⚠️");
-            alertIcon.setFont(Font.font(24));
+            Label alertIcon = new Label("\u26A0");
+            alertIcon.setFont(Font.font("Segoe UI Emoji", 24));
 
             VBox alertTextBox = new VBox(3);
             Label alertTitle = new Label("ATTENTION: You have " + allFailedCourseCodes.size() + " failed course(s)! (Grade < CC)");

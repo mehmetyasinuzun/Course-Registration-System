@@ -17,8 +17,6 @@ import javafx.collections.ObservableList;
 import controller.AdminController;
 import controller.AuthController;
 import model.*;
-import util.NavigationManager;
-import util.SessionManager;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -89,8 +87,8 @@ public class AdminView {
         menuBox.setPadding(new Insets(20, 10, 20, 10));
 
         Button dashboardBtn = createMenuButton("📊 Dashboard", true);
-        Button studentsBtn = createMenuButton("👨‍🎓 Students", false);
-        Button instructorsBtn = createMenuButton("👨‍🏫 Instructors", false);
+        Button studentsBtn = createMenuButton("\uD83C\uDF93 Students", false); // 🎓
+        Button instructorsBtn = createMenuButton("\uD83D\uDCBC Instructors", false); // 🏫
         Button transcriptBtn = createMenuButton("📜 Transcript", false);
         Button creditTransferBtn = createMenuButton("🔄 Credit Transfer", false);
         Button catalogBtn = createMenuButton("📖 Course Catalog", false);
@@ -108,55 +106,46 @@ public class AdminView {
         dashboardBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(dashboardBtn);
-            NavigationManager.navigateTo("Dashboard");  // Stack'e ekle
             showDashboard();
         });
         studentsBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(studentsBtn);
-            NavigationManager.navigateTo("Students");  // Stack'e ekle
             showStudents();
         });
         instructorsBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(instructorsBtn);
-            NavigationManager.navigateTo("Instructors");  // Stack'e ekle
             showInstructors();
         });
         transcriptBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(transcriptBtn);
-            NavigationManager.navigateTo("Transcript");  // Stack'e ekle
             showTranscript();
         });
         creditTransferBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(creditTransferBtn);
-            NavigationManager.navigateTo("CreditTransfer");  // Stack'e ekle
             showCreditTransfer();
         });
         catalogBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(catalogBtn);
-            NavigationManager.navigateTo("CourseCatalog");  // Stack'e ekle
             showCourseCatalog();
         });
         coursesBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(coursesBtn);
-            NavigationManager.navigateTo("Courses");  // Stack'e ekle
             showCourses();
         });
         courseRequestsBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(courseRequestsBtn);
-            NavigationManager.navigateTo("CourseRequests");  // Stack'e ekle
             showCourseRequests();
         });
         registrationsBtn.setOnAction(e -> {
             resetMenuButtons(menuBox);
             setActiveButton(registrationsBtn);
-            NavigationManager.navigateTo("Registrations");  // Stack'e ekle
             showRegistrations();
         });
         logoutBtn.setOnAction(e -> logout());
@@ -189,6 +178,7 @@ public class AdminView {
         Button btn = new Button(text);
         btn.setPrefWidth(230);
         btn.setAlignment(Pos.CENTER_LEFT);
+        btn.setFont(Font.font("Segoe UI Emoji", 14));
 
         if (active) {
             setActiveButton(btn);
@@ -268,8 +258,8 @@ public class AdminView {
         // Stat cards
         HBox statsBox = new HBox(20);
         statsBox.getChildren().addAll(
-                createStatCard("👨‍🎓", "Total Students", String.valueOf(adminController.getTotalStudents()), "#3498db"),
-                createStatCard("👨‍🏫", "Total Instructors", String.valueOf(adminController.getTotalInstructors()), "#2ecc71"),
+                createStatCard("\uD83C\uDF93", "Total Students", String.valueOf(adminController.getTotalStudents()), "#3498db"), // 🎓
+                createStatCard("\uD83D\uDCBC", "Total Instructors", String.valueOf(adminController.getTotalInstructors()), "#2ecc71"), // 💼
                 createStatCard("📚", "Total Courses", String.valueOf(adminController.getTotalCourses()), "#9b59b6"),
                 createStatCard("📋", "Pending Registrations", String.valueOf(adminController.getPendingCount()), "#e74c3c")
         );
@@ -348,8 +338,7 @@ public class AdminView {
         card.setPadding(new Insets(20));
 
         Label iconLabel = new Label(icon);
-        iconLabel.setFont(Font.font(30));
-
+        iconLabel.setFont(Font.font("Segoe UI Emoji", 30));
         Label valueLabel = new Label(value);
         valueLabel.setFont(Font.font("System", FontWeight.BOLD, 28));
         valueLabel.setTextFill(Color.web(color));
@@ -496,7 +485,7 @@ public class AdminView {
         strengthLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
         passwordBox.getChildren().addAll(passwordField, strengthLabel);
 
-        // --- E-POSTA ALANI ---
+        // --- E-POSTA ALANI (YENİ) ---
         TextField emailField = new TextField();
         emailField.setPromptText("Email");
         VBox emailBox = new VBox(5);
@@ -506,12 +495,6 @@ public class AdminView {
 
         TextField studentNumField = new TextField();
         studentNumField.setPromptText("Student No");
-        // Only allow numeric input for student number
-        studentNumField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.matches("\\d*")) {
-                studentNumField.setText(newVal.replaceAll("[^\\d]", ""));
-            }
-        });
 
         ComboBox<String> yearCombo = new ComboBox<>();
         yearCombo.getItems().addAll("Year 1", "Year 2", "Year 3", "Year 4");
@@ -521,31 +504,19 @@ public class AdminView {
         semesterCombo.getItems().addAll("Fall (1)", "Spring (2)");
         semesterCombo.setValue("Fall (1)");
 
-        Label nameLabel = new Label("Full Name:");
-        Label usernameLabel = new Label("Username:");
-        Label passwordLabel = new Label("Password:");
-        Label emailLabel = new Label("Email:");
-        Label studentNoLabel = new Label("Student No:");
-        Label yearLabel = new Label("Year:");
-        Label semesterLabel = new Label("Semester:");
-        
-        // Align labels to top for multi-line fields
-        GridPane.setValignment(passwordLabel, javafx.geometry.VPos.TOP);
-        GridPane.setValignment(emailLabel, javafx.geometry.VPos.TOP);
-        
-        grid.add(nameLabel, 0, 0);
+        grid.add(new Label("Full Name:"), 0, 0);
         grid.add(nameField, 1, 0);
-        grid.add(usernameLabel, 0, 1);
+        grid.add(new Label("Username:"), 0, 1);
         grid.add(usernameField, 1, 1);
-        grid.add(passwordLabel, 0, 2);
+        grid.add(new Label("Password:"), 0, 2);
         grid.add(passwordBox, 1, 2);
-        grid.add(emailLabel, 0, 3);
-        grid.add(emailBox, 1, 3);
-        grid.add(studentNoLabel, 0, 4);
+        grid.add(new Label("Email:"), 0, 3);
+        grid.add(emailBox, 1, 3); // emailField yerine emailBox eklendi
+        grid.add(new Label("Student No:"), 0, 4);
         grid.add(studentNumField, 1, 4);
-        grid.add(yearLabel, 0, 5);
+        grid.add(new Label("Year:"), 0, 5);
         grid.add(yearCombo, 1, 5);
-        grid.add(semesterLabel, 0, 6);
+        grid.add(new Label("Semester:"), 0, 6);
         grid.add(semesterCombo, 1, 6);
 
         dialog.getDialogPane().setContent(grid);
@@ -554,41 +525,7 @@ public class AdminView {
         Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         okButton.setDisable(true);
 
-        // Validation helper method
-        Runnable validateForm = () -> {
-            String name = nameField.getText().trim();
-            String username = usernameField.getText().trim();
-            String password = passwordField.getText();
-            String email = emailField.getText().trim();
-            String studentNum = studentNumField.getText().trim();
-            
-            service.UserService.PasswordStrength strength = new service.UserService.PasswordStrength(password);
-            boolean isPasswordValid = strength.isValid();
-            boolean isEmailValid = email.contains("@") && email.contains(".") && email.indexOf("@") < email.lastIndexOf(".");
-            boolean isNameValid = !name.isEmpty();
-            boolean isUsernameValid = !username.isEmpty();
-            boolean isStudentNumValid = !studentNum.isEmpty();
-            
-            // Update email error label with specific messages
-            if (email.isEmpty()) {
-                emailStatusLabel.setText("");
-            } else if (!email.contains("@")) {
-                emailStatusLabel.setText("✗ Email must contain @");
-                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
-            } else if (!email.contains(".")) {
-                emailStatusLabel.setText("✗ Email must contain . (dot)");
-                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
-            } else if (email.indexOf("@") >= email.lastIndexOf(".")) {
-                emailStatusLabel.setText("✗ Invalid format (. must come after @)");
-                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
-            } else {
-                emailStatusLabel.setText("✓ Valid email");
-                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #27ae60;");
-            }
-            
-            // Enable OK button only if all fields are valid
-            okButton.setDisable(!(isNameValid && isUsernameValid && isPasswordValid && isEmailValid && isStudentNumValid));
-        };
+        // --- REAL-TIME DOĞRULAMALAR ---
 
         // Şifre Doğrulama Dinleyicisi
         passwordField.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -598,20 +535,36 @@ public class AdminView {
             feedback.append(strength.hasUpperCase ? "✓" : "✗").append(" One uppercase letter (A-Z)\n");
             feedback.append(strength.hasLowerCase ? "✓" : "✗").append(" One lowercase letter (a-z)\n");
             feedback.append(strength.hasDigit ? "✓" : "✗").append(" One digit (0-9)\n");
-            feedback.append(strength.hasSpecial ? "✓" : "✗").append(" One special character (!@#$%...)");
+            feedback.append(strength.hasSpecial ? "✓" : "✗").append(" One special character (!@#$%...)\n");
             strengthLabel.setText(feedback.toString());
 
             if (strength.isValid()) strengthLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #27ae60;");
             else strengthLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
 
-            validateForm.run();
+            // Buton kontrolü: Hem şifre hem e-posta doğru olmalı
+            okButton.setDisable(!(strength.isValid() && isValidEmail(emailField.getText())));
         });
 
-        // Add listeners for other fields
-        nameField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
-        usernameField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
-        emailField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
-        studentNumField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
+        // E-posta Doğrulama Dinleyicisi
+        emailField.textProperty().addListener((obs, oldVal, newVal) -> {
+            // Boşluk girişini engelle
+            if (newVal.contains(" ")) {
+                emailField.setText(oldVal);
+                return;
+            }
+            
+            String errorMsg = getEmailValidationError(newVal);
+            emailStatusLabel.setText(errorMsg);
+            if (errorMsg.startsWith("✓")) {
+                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #27ae60;");
+            } else {
+                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
+            }
+
+            // Buton kontrolü: Hem şifre hem e-posta doğru olmalı
+            service.UserService.PasswordStrength strength = new service.UserService.PasswordStrength(passwordField.getText());
+            okButton.setDisable(!(strength.isValid() && isValidEmail(newVal)));
+        });
 
         dialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
@@ -624,42 +577,14 @@ public class AdminView {
                 int year = yearCombo.getSelectionModel().getSelectedIndex() + 1;
                 int semester = semesterCombo.getSelectionModel().getSelectedIndex() + 1;
 
-                // Final validation with specific error messages
-                StringBuilder errors = new StringBuilder();
-                
-                if (name.isEmpty()) {
-                    errors.append("• Full Name is required\n");
-                }
-                if (username.isEmpty()) {
-                    errors.append("• Username is required\n");
-                }
-                
-                String passwordValidation = service.UserService.validatePassword(password);
-                if (!passwordValidation.equals("VALID")) {
-                    errors.append("• ").append(passwordValidation).append("\n");
-                }
-                
-                if (email.isEmpty()) {
-                    errors.append("• Email is required\n");
-                } else if (!email.contains("@") || !email.contains(".") || email.indexOf("@") >= email.lastIndexOf(".")) {
-                    errors.append("• Please enter a valid email address\n");
-                }
-                
-                if (studentNum.isEmpty()) {
-                    errors.append("• Student No is required\n");
-                }
-                
-                if (errors.length() > 0) {
-                    showAlert(Alert.AlertType.ERROR, "Validation Error", errors.toString());
-                    return;
-                }
-
-                int id = adminController.addStudent(username, password, name, email, studentNum, year, semester);
-                if (id > 0) {
-                    showAlert(Alert.AlertType.INFORMATION, "Success", "Student added!");
-                    refreshStudentTable();
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Error", "Student could not be added! Username may already exist.");
+                if (!name.isEmpty() && !username.isEmpty() && !password.isEmpty() && !studentNum.isEmpty()) {
+                    int id = adminController.addStudent(username, password, name, email, studentNum, year, semester);
+                    if (id > 0) {
+                        showAlert(Alert.AlertType.INFORMATION, "Success", "Student added!");
+                        refreshStudentTable();
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Error", "Student could not be added!");
+                    }
                 }
             }
         });
@@ -782,22 +707,13 @@ public class AdminView {
         VBox emailBox = new VBox(5);
         emailBox.getChildren().addAll(emailField, emailErrorLabel);
 
-        Label nameLabel = new Label("Full Name:");
-        Label usernameLabel = new Label("Username:");
-        Label passwordLabel = new Label("Password:");
-        Label emailLabel = new Label("Email:");
-        
-        // Align labels to top for multi-line fields
-        GridPane.setValignment(passwordLabel, javafx.geometry.VPos.TOP);
-        GridPane.setValignment(emailLabel, javafx.geometry.VPos.TOP);
-        
-        grid.add(nameLabel, 0, 0);
+        grid.add(new Label("Full Name:"), 0, 0);
         grid.add(nameField, 1, 0);
-        grid.add(usernameLabel, 0, 1);
+        grid.add(new Label("Username:"), 0, 1);
         grid.add(usernameField, 1, 1);
-        grid.add(passwordLabel, 0, 2);
+        grid.add(new Label("Password:"), 0, 2);
         grid.add(passwordBox, 1, 2);
-        grid.add(emailLabel, 0, 3);
+        grid.add(new Label("Email:"), 0, 3);
         grid.add(emailBox, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
@@ -805,42 +721,6 @@ public class AdminView {
 
         Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         okButton.setDisable(true);
-
-        // Validation helper method
-        Runnable validateForm = () -> {
-            String name = nameField.getText().trim();
-            String username = usernameField.getText().trim();
-            String password = passwordField.getText();
-            String email = emailField.getText().trim();
-            
-            service.UserService.PasswordStrength strength = new service.UserService.PasswordStrength(password);
-            boolean isPasswordValid = strength.isValid();
-            boolean isEmailValid = email.contains("@") && email.contains(".") && email.indexOf("@") < email.lastIndexOf(".");
-            boolean isNameValid = !name.isEmpty();
-            boolean isUsernameValid = !username.isEmpty();
-            
-            // Update email error label with specific messages
-            if (email.isEmpty()) {
-                emailErrorLabel.setText("");
-            } else if (!email.contains("@")) {
-                emailErrorLabel.setText("✗ Email must contain @");
-                emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
-            } else if (!email.contains(".")) {
-                emailErrorLabel.setText("✗ Email must contain . (dot)");
-                emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
-            } else if (email.indexOf("@") >= email.lastIndexOf(".")) {
-                emailErrorLabel.setText("✗ Invalid format (. must come after @)");
-            } else {
-                emailErrorLabel.setText("✓ Valid email");
-                emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #27ae60;");
-            }
-            if (!isEmailValid && !email.isEmpty()) {
-                emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
-            }
-            
-            // Enable OK button only if all fields are valid
-            okButton.setDisable(!(isNameValid && isUsernameValid && isPasswordValid && isEmailValid));
-        };
 
         // Real-time password validation
         passwordField.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -851,7 +731,7 @@ public class AdminView {
             feedback.append(strength.hasUpperCase ? "✓" : "✗").append(" One uppercase letter (A-Z)\n");
             feedback.append(strength.hasLowerCase ? "✓" : "✗").append(" One lowercase letter (a-z)\n");
             feedback.append(strength.hasDigit ? "✓" : "✗").append(" One digit (0-9)\n");
-            feedback.append(strength.hasSpecial ? "✓" : "✗").append(" One special character (!@#$%...)");
+            feedback.append(strength.hasSpecial ? "✓" : "✗").append(" One special character (!@#$%...)\n");
 
             strengthLabel.setText(feedback.toString());
 
@@ -861,13 +741,30 @@ public class AdminView {
                 strengthLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
             }
             
-            validateForm.run();
+            // Buton kontrolü: Hem şifre hem e-posta doğru olmalı
+            okButton.setDisable(!(strength.isValid() && isValidEmail(emailField.getText())));
         });
         
-        // Add listeners for other fields
-        nameField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
-        usernameField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
-        emailField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
+        // Email validation listener
+        emailField.textProperty().addListener((obs, oldVal, newVal) -> {
+            // Boşluk girişini engelle
+            if (newVal.contains(" ")) {
+                emailField.setText(oldVal);
+                return;
+            }
+            
+            String errorMsg = getEmailValidationError(newVal);
+            emailErrorLabel.setText(errorMsg);
+            if (errorMsg.startsWith("✓")) {
+                emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #27ae60;");
+            } else {
+                emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
+            }
+            
+            // Buton kontrolü: Hem şifre hem e-posta doğru olmalı
+            service.UserService.PasswordStrength strength = new service.UserService.PasswordStrength(passwordField.getText());
+            okButton.setDisable(!(strength.isValid() && isValidEmail(newVal)));
+        });
 
         dialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
@@ -876,38 +773,21 @@ public class AdminView {
                 String password = passwordField.getText();
                 String email = emailField.getText().trim();
 
-                // Final validation with specific error messages
-                StringBuilder errors = new StringBuilder();
-                
-                if (name.isEmpty()) {
-                    errors.append("• Full Name is required\n");
-                }
-                if (username.isEmpty()) {
-                    errors.append("• Username is required\n");
-                }
-                
+                // Validate password
                 String passwordValidation = service.UserService.validatePassword(password);
                 if (!passwordValidation.equals("VALID")) {
-                    errors.append("• ").append(passwordValidation).append("\n");
-                }
-                
-                if (email.isEmpty()) {
-                    errors.append("• Email is required\n");
-                } else if (!email.contains("@") || !email.contains(".") || email.indexOf("@") >= email.lastIndexOf(".")) {
-                    errors.append("• Please enter a valid email address\n");
-                }
-                
-                if (errors.length() > 0) {
-                    showAlert(Alert.AlertType.ERROR, "Validation Error", errors.toString());
+                    showAlert(Alert.AlertType.ERROR, "Invalid Password", passwordValidation);
                     return;
                 }
 
-                int id = adminController.addInstructor(username, password, name, email);
-                if (id > 0) {
-                    showAlert(Alert.AlertType.INFORMATION, "Success", "Instructor added!");
-                    refreshInstructorTable();
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Error", "Instructor could not be added! Username may already exist.");
+                if (!name.isEmpty() && !username.isEmpty() && !password.isEmpty()) {
+                    int id = adminController.addInstructor(username, password, name, email);
+                    if (id > 0) {
+                        showAlert(Alert.AlertType.INFORMATION, "Success", "Instructor added!");
+                        refreshInstructorTable();
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Error", "Instructor could not be added!");
+                    }
                 }
             }
         });
@@ -1491,33 +1371,25 @@ public class AdminView {
         addBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20; -fx-cursor: hand;");
         addBtn.setOnAction(e -> showAddCatalogCourseDialog());
 
-        Button editBtn = new Button("✏️ Edit");
-        editBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20; -fx-cursor: hand;");
-        editBtn.setOnAction(e -> {
-            CourseCatalog selected = catalogTable.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                showEditCatalogCourseDialog(selected);
-            } else {
-                showAlert(Alert.AlertType.WARNING, "Warning", "Please select a course to edit!");
-            }
-        });
+        Button editBtn = new Button("\u270F Edit"); // Saf kalem simgesi
+        editBtn.setStyle(
+                "-fx-background-color: #3498db; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-padding: 10 20; " +
+                        "-fx-cursor: hand; " +
+                        "-fx-font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;" // Emoji desteğini zorla
+        );
 
-        Button deleteBtn = new Button("🗑️ Delete");
-        deleteBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20; -fx-cursor: hand;");
-        deleteBtn.setOnAction(e -> {
-            CourseCatalog selected = catalogTable.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                if (showConfirmDialog("Delete Confirmation", "Are you sure you want to delete the course with code " + selected.getCode() + " from the catalog?")) {
-                    adminController.deleteCatalogCourse(selected.getId());
-                    refreshCatalogTable();
-                    filterCatalogTable(searchField.getText(), semesterFilter.getSelectionModel().getSelectedIndex(), countLabel);
-                    showAlert(Alert.AlertType.INFORMATION, "Success", "Course deleted from the catalog!");
-                }
-            } else {
-                showAlert(Alert.AlertType.WARNING, "Warning", "Please select a course to delete!");
-            }
-        });
-
+        Button deleteBtn = new Button("\uD83D\uDDD1 Delete"); // Saf çöp kutusu simgesi
+        deleteBtn.setStyle(
+                "-fx-background-color: #e74c3c; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-padding: 10 20; " +
+                        "-fx-cursor: hand; " +
+                        "-fx-font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;" // Emoji desteğini zorla
+        );
         toolbar.getChildren().addAll(addBtn, editBtn, deleteBtn);
 
         // Table
@@ -2585,9 +2457,59 @@ public class AdminView {
     }
     private boolean isValidEmail(String email) {
         if (email == null || email.trim().isEmpty()) return false;
-        // Standart e-posta formatı kontrolü (regex)
-        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-        return email.matches(emailRegex);
+        // Boşluk kontrolü
+        if (email.contains(" ")) return false;
+        // @ kontrolü
+        if (!email.contains("@")) return false;
+        // . kontrolü
+        if (!email.contains(".")) return false;
+        // edu kontrolü
+        if (!email.toLowerCase().contains("edu")) return false;
+        // @ önce, edu sonra olmalı
+        int atIndex = email.indexOf("@");
+        int eduIndex = email.toLowerCase().indexOf("edu");
+        if (atIndex >= eduIndex) return false;
+        // @. veya .@ gibi geçersiz formatlar
+        if (email.contains("@.") || email.contains(".@")) return false;
+        // @ öncesi boş olmamalı
+        if (atIndex == 0) return false;
+        // Standart e-posta formatı kontrolü (regex) - edu içermeli
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.edu(\\.[A-Za-z]{2,})?$";
+        return email.toLowerCase().matches(emailRegex.toLowerCase()) || 
+               (email.contains("@") && email.toLowerCase().contains(".edu"));
+    }
+    
+    private String getEmailValidationError(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return "";
+        }
+        if (email.contains(" ")) {
+            return "✗ Email cannot contain spaces";
+        }
+        if (!email.contains("@")) {
+            return "✗ Email must contain @";
+        }
+        if (!email.contains(".")) {
+            return "✗ Email must contain . (dot)";
+        }
+        if (!email.toLowerCase().contains("edu")) {
+            return "✗ Email must contain 'edu' (educational email required)";
+        }
+        int atIndex = email.indexOf("@");
+        int eduIndex = email.toLowerCase().indexOf("edu");
+        if (atIndex >= eduIndex) {
+            return "✗ 'edu' must come after @ (e.g., user@university.edu.tr)";
+        }
+        if (email.contains("@.") || email.contains(".@")) {
+            return "✗ Invalid format: @. or .@ is not allowed";
+        }
+        if (atIndex == 0) {
+            return "✗ Email cannot start with @";
+        }
+        if (isValidEmail(email)) {
+            return "✓ Valid email";
+        }
+        return "✗ Invalid email format";
     }
 }
 

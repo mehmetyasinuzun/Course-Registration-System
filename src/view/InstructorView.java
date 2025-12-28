@@ -15,8 +15,6 @@ import javafx.collections.ObservableList;
 import controller.InstructorController;
 import controller.AuthController;
 import model.*;
-import util.NavigationManager;
-import util.SessionManager;
 import java.util.List;
 
 public class InstructorView {
@@ -60,8 +58,10 @@ public class InstructorView {
         header.setPadding(new Insets(30, 20, 30, 20));
         header.setStyle("-fx-background-color: #152d4a;");
 
-        Label logoLabel = new Label("👨‍🏫");
-        logoLabel.setFont(Font.font(40));
+        // Logo kısmındaki simgeyi ve fontu güncelliyoruz
+        Label logoLabel = new Label("\uD83C\uDF93");
+        logoLabel.setFont(Font.font("Segoe UI Emoji", 40));
+
 
         Label titleLabel = new Label("Instructor Panel");
         titleLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
@@ -89,36 +89,11 @@ public class InstructorView {
             notificationsBtn.setText("🔔 Notifications (" + unreadCount + ")");
         }
 
-        dashboardBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(dashboardBtn); 
-            NavigationManager.navigateTo("Dashboard");  // Stack'e ekle
-            showDashboard(); 
-        });
-        coursesBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(coursesBtn); 
-            NavigationManager.navigateTo("Courses");  // Stack'e ekle
-            showCourses(); 
-        });
-        myRequestsBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(myRequestsBtn); 
-            NavigationManager.navigateTo("MyRequests");  // Stack'e ekle
-            showMyRequests(); 
-        });
-        registrationsBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(registrationsBtn); 
-            NavigationManager.navigateTo("Registrations");  // Stack'e ekle
-            showRegistrations(); 
-        });
-        notificationsBtn.setOnAction(e -> { 
-            resetMenuButtons(menuBox); 
-            setActiveButton(notificationsBtn); 
-            NavigationManager.navigateTo("Notifications");  // Stack'e ekle
-            showNotifications(); 
-        });
+        dashboardBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(dashboardBtn); showDashboard(); });
+        coursesBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(coursesBtn); showCourses(); });
+        myRequestsBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(myRequestsBtn); showMyRequests(); });
+        registrationsBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(registrationsBtn); showRegistrations(); });
+        notificationsBtn.setOnAction(e -> { resetMenuButtons(menuBox); setActiveButton(notificationsBtn); showNotifications(); });
         logoutBtn.setOnAction(e -> logout());
 
         logoutBtn.setStyle(
