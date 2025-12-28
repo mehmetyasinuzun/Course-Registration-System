@@ -496,16 +496,22 @@ public class AdminView {
         strengthLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
         passwordBox.getChildren().addAll(passwordField, strengthLabel);
 
-        // --- E-POSTA ALANI (YENİ) ---
+        // --- E-POSTA ALANI ---
         TextField emailField = new TextField();
         emailField.setPromptText("Email");
         VBox emailBox = new VBox(5);
-        Label emailStatusLabel = new Label("✗ Please enter a valid email");
+        Label emailStatusLabel = new Label("");
         emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
         emailBox.getChildren().addAll(emailField, emailStatusLabel);
 
         TextField studentNumField = new TextField();
         studentNumField.setPromptText("Student No");
+        // Only allow numeric input for student number
+        studentNumField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal.matches("\\d*")) {
+                studentNumField.setText(newVal.replaceAll("[^\\d]", ""));
+            }
+        });
 
         ComboBox<String> yearCombo = new ComboBox<>();
         yearCombo.getItems().addAll("Year 1", "Year 2", "Year 3", "Year 4");
@@ -515,19 +521,31 @@ public class AdminView {
         semesterCombo.getItems().addAll("Fall (1)", "Spring (2)");
         semesterCombo.setValue("Fall (1)");
 
-        grid.add(new Label("Full Name:"), 0, 0);
+        Label nameLabel = new Label("Full Name:");
+        Label usernameLabel = new Label("Username:");
+        Label passwordLabel = new Label("Password:");
+        Label emailLabel = new Label("Email:");
+        Label studentNoLabel = new Label("Student No:");
+        Label yearLabel = new Label("Year:");
+        Label semesterLabel = new Label("Semester:");
+        
+        // Align labels to top for multi-line fields
+        GridPane.setValignment(passwordLabel, javafx.geometry.VPos.TOP);
+        GridPane.setValignment(emailLabel, javafx.geometry.VPos.TOP);
+        
+        grid.add(nameLabel, 0, 0);
         grid.add(nameField, 1, 0);
-        grid.add(new Label("Username:"), 0, 1);
+        grid.add(usernameLabel, 0, 1);
         grid.add(usernameField, 1, 1);
-        grid.add(new Label("Password:"), 0, 2);
+        grid.add(passwordLabel, 0, 2);
         grid.add(passwordBox, 1, 2);
-        grid.add(new Label("Email:"), 0, 3);
-        grid.add(emailBox, 1, 3); // emailField yerine emailBox eklendi
-        grid.add(new Label("Student No:"), 0, 4);
+        grid.add(emailLabel, 0, 3);
+        grid.add(emailBox, 1, 3);
+        grid.add(studentNoLabel, 0, 4);
         grid.add(studentNumField, 1, 4);
-        grid.add(new Label("Year:"), 0, 5);
+        grid.add(yearLabel, 0, 5);
         grid.add(yearCombo, 1, 5);
-        grid.add(new Label("Semester:"), 0, 6);
+        grid.add(semesterLabel, 0, 6);
         grid.add(semesterCombo, 1, 6);
 
         dialog.getDialogPane().setContent(grid);
@@ -536,7 +554,41 @@ public class AdminView {
         Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         okButton.setDisable(true);
 
-        // --- REAL-TIME DOĞRULAMALAR ---
+        // Validation helper method
+        Runnable validateForm = () -> {
+            String name = nameField.getText().trim();
+            String username = usernameField.getText().trim();
+            String password = passwordField.getText();
+            String email = emailField.getText().trim();
+            String studentNum = studentNumField.getText().trim();
+            
+            service.UserService.PasswordStrength strength = new service.UserService.PasswordStrength(password);
+            boolean isPasswordValid = strength.isValid();
+            boolean isEmailValid = email.contains("@") && email.contains(".") && email.indexOf("@") < email.lastIndexOf(".");
+            boolean isNameValid = !name.isEmpty();
+            boolean isUsernameValid = !username.isEmpty();
+            boolean isStudentNumValid = !studentNum.isEmpty();
+            
+            // Update email error label with specific messages
+            if (email.isEmpty()) {
+                emailStatusLabel.setText("");
+            } else if (!email.contains("@")) {
+                emailStatusLabel.setText("✗ Email must contain @");
+                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
+            } else if (!email.contains(".")) {
+                emailStatusLabel.setText("✗ Email must contain . (dot)");
+                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
+            } else if (email.indexOf("@") >= email.lastIndexOf(".")) {
+                emailStatusLabel.setText("✗ Invalid format (. must come after @)");
+                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
+            } else {
+                emailStatusLabel.setText("✓ Valid email");
+                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #27ae60;");
+            }
+            
+            // Enable OK button only if all fields are valid
+            okButton.setDisable(!(isNameValid && isUsernameValid && isPasswordValid && isEmailValid && isStudentNumValid));
+        };
 
         // Şifre Doğrulama Dinleyicisi
         passwordField.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -546,30 +598,20 @@ public class AdminView {
             feedback.append(strength.hasUpperCase ? "✓" : "✗").append(" One uppercase letter (A-Z)\n");
             feedback.append(strength.hasLowerCase ? "✓" : "✗").append(" One lowercase letter (a-z)\n");
             feedback.append(strength.hasDigit ? "✓" : "✗").append(" One digit (0-9)\n");
-            feedback.append(strength.hasSpecial ? "✓" : "✗").append(" One special character (!@#$%...)\n");
+            feedback.append(strength.hasSpecial ? "✓" : "✗").append(" One special character (!@#$%...)");
             strengthLabel.setText(feedback.toString());
 
             if (strength.isValid()) strengthLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #27ae60;");
             else strengthLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
 
-            // Buton kontrolü: Hem şifre hem e-posta doğru olmalı
-            okButton.setDisable(!(strength.isValid() && isValidEmail(emailField.getText())));
+            validateForm.run();
         });
 
-        // E-posta Doğrulama Dinleyicisi (YENİ)
-        emailField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (isValidEmail(newVal)) {
-                emailStatusLabel.setText("✓ Email format is valid");
-                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #27ae60;");
-            } else {
-                emailStatusLabel.setText("✗ Invalid email format (needs @ and .)");
-                emailStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
-            }
-
-            // Buton kontrolü: Hem şifre hem e-posta doğru olmalı
-            service.UserService.PasswordStrength strength = new service.UserService.PasswordStrength(passwordField.getText());
-            okButton.setDisable(!(strength.isValid() && isValidEmail(newVal)));
-        });
+        // Add listeners for other fields
+        nameField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
+        usernameField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
+        emailField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
+        studentNumField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
 
         dialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
@@ -582,49 +624,42 @@ public class AdminView {
                 int year = yearCombo.getSelectionModel().getSelectedIndex() + 1;
                 int semester = semesterCombo.getSelectionModel().getSelectedIndex() + 1;
 
-                if (!name.isEmpty() && !username.isEmpty() && !password.isEmpty() && !studentNum.isEmpty()) {
-                    int id = adminController.addStudent(username, password, name, email, studentNum, year, semester);
-                    if (id > 0) {
-                        showAlert(Alert.AlertType.INFORMATION, "Success", "Student added!");
-                        refreshStudentTable();
-                    } else {
-                        showAlert(Alert.AlertType.ERROR, "Error", "Student could not be added!");
-                    }
+                // Final validation with specific error messages
+                StringBuilder errors = new StringBuilder();
+                
+                if (name.isEmpty()) {
+                    errors.append("• Full Name is required\n");
                 }
-            }
-        });
-
-
-
-        dialog.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                String name = nameField.getText().trim();
-                String username = usernameField.getText().trim();
-                String password = passwordField.getText();
-                String email = emailField.getText().trim();
-                String studentNum = studentNumField.getText().trim();
-
-                // Get year and semester values
-                int year = yearCombo.getSelectionModel().getSelectedIndex() + 1;
-                int semester = semesterCombo.getSelectionModel().getSelectedIndex() + 1;
-
-                // Validate password
+                if (username.isEmpty()) {
+                    errors.append("• Username is required\n");
+                }
+                
                 String passwordValidation = service.UserService.validatePassword(password);
                 if (!passwordValidation.equals("VALID")) {
-                    showAlert(Alert.AlertType.ERROR, "Invalid Password", passwordValidation);
+                    errors.append("• ").append(passwordValidation).append("\n");
+                }
+                
+                if (email.isEmpty()) {
+                    errors.append("• Email is required\n");
+                } else if (!email.contains("@") || !email.contains(".") || email.indexOf("@") >= email.lastIndexOf(".")) {
+                    errors.append("• Please enter a valid email address\n");
+                }
+                
+                if (studentNum.isEmpty()) {
+                    errors.append("• Student No is required\n");
+                }
+                
+                if (errors.length() > 0) {
+                    showAlert(Alert.AlertType.ERROR, "Validation Error", errors.toString());
                     return;
                 }
 
-                if (!name.isEmpty() && !username.isEmpty() && !password.isEmpty() && !studentNum.isEmpty()) {
-                    int id = adminController.addStudent(username, password, name, email, studentNum, year, semester);
-                    if (id > 0) {
-                        showAlert(Alert.AlertType.INFORMATION, "Success", "Student added!");
-                        refreshStudentTable();
-                    } else {
-                        showAlert(Alert.AlertType.ERROR, "Error", "Student could not be added! The username may already be in use.");
-                    }
+                int id = adminController.addStudent(username, password, name, email, studentNum, year, semester);
+                if (id > 0) {
+                    showAlert(Alert.AlertType.INFORMATION, "Success", "Student added!");
+                    refreshStudentTable();
                 } else {
-                    showAlert(Alert.AlertType.WARNING, "Warning", "Please fill in all fields!");
+                    showAlert(Alert.AlertType.ERROR, "Error", "Student could not be added! Username may already exist.");
                 }
             }
         });
@@ -740,21 +775,72 @@ public class AdminView {
         passwordBox.getChildren().addAll(passwordField, strengthLabel);
 
         TextField emailField = new TextField();
+        
+        // Email validation label
+        Label emailErrorLabel = new Label("");
+        emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
+        VBox emailBox = new VBox(5);
+        emailBox.getChildren().addAll(emailField, emailErrorLabel);
 
-        grid.add(new Label("Full Name:"), 0, 0);
+        Label nameLabel = new Label("Full Name:");
+        Label usernameLabel = new Label("Username:");
+        Label passwordLabel = new Label("Password:");
+        Label emailLabel = new Label("Email:");
+        
+        // Align labels to top for multi-line fields
+        GridPane.setValignment(passwordLabel, javafx.geometry.VPos.TOP);
+        GridPane.setValignment(emailLabel, javafx.geometry.VPos.TOP);
+        
+        grid.add(nameLabel, 0, 0);
         grid.add(nameField, 1, 0);
-        grid.add(new Label("Username:"), 0, 1);
+        grid.add(usernameLabel, 0, 1);
         grid.add(usernameField, 1, 1);
-        grid.add(new Label("Password:"), 0, 2);
+        grid.add(passwordLabel, 0, 2);
         grid.add(passwordBox, 1, 2);
-        grid.add(new Label("Email:"), 0, 3);
-        grid.add(emailField, 1, 3);
+        grid.add(emailLabel, 0, 3);
+        grid.add(emailBox, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         okButton.setDisable(true);
+
+        // Validation helper method
+        Runnable validateForm = () -> {
+            String name = nameField.getText().trim();
+            String username = usernameField.getText().trim();
+            String password = passwordField.getText();
+            String email = emailField.getText().trim();
+            
+            service.UserService.PasswordStrength strength = new service.UserService.PasswordStrength(password);
+            boolean isPasswordValid = strength.isValid();
+            boolean isEmailValid = email.contains("@") && email.contains(".") && email.indexOf("@") < email.lastIndexOf(".");
+            boolean isNameValid = !name.isEmpty();
+            boolean isUsernameValid = !username.isEmpty();
+            
+            // Update email error label with specific messages
+            if (email.isEmpty()) {
+                emailErrorLabel.setText("");
+            } else if (!email.contains("@")) {
+                emailErrorLabel.setText("✗ Email must contain @");
+                emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
+            } else if (!email.contains(".")) {
+                emailErrorLabel.setText("✗ Email must contain . (dot)");
+                emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
+            } else if (email.indexOf("@") >= email.lastIndexOf(".")) {
+                emailErrorLabel.setText("✗ Invalid format (. must come after @)");
+            } else {
+                emailErrorLabel.setText("✓ Valid email");
+                emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #27ae60;");
+            }
+            if (!isEmailValid && !email.isEmpty()) {
+                emailErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
+            }
+            
+            // Enable OK button only if all fields are valid
+            okButton.setDisable(!(isNameValid && isUsernameValid && isPasswordValid && isEmailValid));
+        };
 
         // Real-time password validation
         passwordField.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -765,18 +851,23 @@ public class AdminView {
             feedback.append(strength.hasUpperCase ? "✓" : "✗").append(" One uppercase letter (A-Z)\n");
             feedback.append(strength.hasLowerCase ? "✓" : "✗").append(" One lowercase letter (a-z)\n");
             feedback.append(strength.hasDigit ? "✓" : "✗").append(" One digit (0-9)\n");
-            feedback.append(strength.hasSpecial ? "✓" : "✗").append(" One special character (!@#$%...)\n");
+            feedback.append(strength.hasSpecial ? "✓" : "✗").append(" One special character (!@#$%...)");
 
             strengthLabel.setText(feedback.toString());
 
             if (strength.isValid()) {
                 strengthLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #27ae60;");
-                okButton.setDisable(false);
             } else {
                 strengthLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e74c3c;");
-                okButton.setDisable(true);
             }
+            
+            validateForm.run();
         });
+        
+        // Add listeners for other fields
+        nameField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
+        usernameField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
+        emailField.textProperty().addListener((obs, oldVal, newVal) -> validateForm.run());
 
         dialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
@@ -785,21 +876,38 @@ public class AdminView {
                 String password = passwordField.getText();
                 String email = emailField.getText().trim();
 
-                // Validate password
+                // Final validation with specific error messages
+                StringBuilder errors = new StringBuilder();
+                
+                if (name.isEmpty()) {
+                    errors.append("• Full Name is required\n");
+                }
+                if (username.isEmpty()) {
+                    errors.append("• Username is required\n");
+                }
+                
                 String passwordValidation = service.UserService.validatePassword(password);
                 if (!passwordValidation.equals("VALID")) {
-                    showAlert(Alert.AlertType.ERROR, "Invalid Password", passwordValidation);
+                    errors.append("• ").append(passwordValidation).append("\n");
+                }
+                
+                if (email.isEmpty()) {
+                    errors.append("• Email is required\n");
+                } else if (!email.contains("@") || !email.contains(".") || email.indexOf("@") >= email.lastIndexOf(".")) {
+                    errors.append("• Please enter a valid email address\n");
+                }
+                
+                if (errors.length() > 0) {
+                    showAlert(Alert.AlertType.ERROR, "Validation Error", errors.toString());
                     return;
                 }
 
-                if (!name.isEmpty() && !username.isEmpty() && !password.isEmpty()) {
-                    int id = adminController.addInstructor(username, password, name, email);
-                    if (id > 0) {
-                        showAlert(Alert.AlertType.INFORMATION, "Success", "Instructor added!");
-                        refreshInstructorTable();
-                    } else {
-                        showAlert(Alert.AlertType.ERROR, "Error", "Instructor could not be added!");
-                    }
+                int id = adminController.addInstructor(username, password, name, email);
+                if (id > 0) {
+                    showAlert(Alert.AlertType.INFORMATION, "Success", "Instructor added!");
+                    refreshInstructorTable();
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Error", "Instructor could not be added! Username may already exist.");
                 }
             }
         });
